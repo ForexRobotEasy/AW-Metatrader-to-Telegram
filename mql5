@@ -1,0 +1,105 @@
+mql5
+//+------------------------------------------------------------------+
+//|                              AW Metatrader to Telegram           |
+//|                  https://www.forexroboteasy.com                  |
+//|                        Developed by Forex Robot Easy Team         |
+//+------------------------------------------------------------------+
+
+// Include necessary libraries
+#include <TelegramConnector.mqh>
+
+// Define Telegram bot token and chat ID
+#define TELEGRAM_TOKEN 'YOUR_TELEGRAM_BOT_TOKEN'
+#define TELEGRAM_CHAT_ID 'YOUR_TELEGRAM_CHAT_ID'
+
+//+------------------------------------------------------------------+
+//|                           Custom Functions                        |
+//+------------------------------------------------------------------+
+
+// Function to send a message to Telegram
+void SendTelegramMessage(string message)
+{
+   CTelegramConnector telegram;
+   telegram.Connect(TELEGRAM_TOKEN);
+   telegram.SendMessage(TELEGRAM_CHAT_ID, message);
+   telegram.Disconnect();
+}
+
+// Function to format notification message with emojis
+string FormatNotification(string type, string symbol, double price)
+{
+   string emoji = '';
+   if (type == 'open') emoji = '📈';
+   if (type == 'close') emoji = '📉';
+   if (type == 'modify') emoji = '✏️';
+   if (type == 'delete') emoji = '❌';
+
+   string message = 'Trade ' + emoji + '\n';
+   message += 'Symbol: ' + symbol + '\n';
+   message += 'Price: ' + DoubleToString(price, _Digits) + '\n';
+
+   return message;
+}
+
+//+------------------------------------------------------------------+
+//|                        Trading Functions                          |
+//+------------------------------------------------------------------+
+
+// Function to handle trade opening
+void OnTradeTransaction(const MqlTradeTransaction& transaction)
+{
+   if (transaction.type == TRADE_TRANSACTION_ORDER_ADD)
+   {
+      string message = FormatNotification('open', Symbol(), transaction.price);
+      SendTelegramMessage(message);
+   }
+}
+
+// Function to handle trade closing
+void OnTradeTransaction(const MqlTradeTransaction& transaction)
+{
+   if (transaction.type == TRADE_TRANSACTION_ORDER_CLOSE)
+   {
+      string message = FormatNotification('close', Symbol(), transaction.price);
+      SendTelegramMessage(message);
+   }
+}
+
+// Function to handle trade modification
+void OnTradeTransaction(const MqlTradeTransaction& transaction)
+{
+   if (transaction.type == TRADE_TRANSACTION_ORDER_MODIFY)
+   {
+      string message = FormatNotification('modify', Symbol(), transaction.price);
+      SendTelegramMessage(message);
+   }
+}
+
+// Function to handle trade deletion
+void OnTradeTransaction(const MqlTradeTransaction& transaction)
+{
+   if (transaction.type == TRADE_TRANSACTION_ORDER_DELETE)
+   {
+      string message = FormatNotification('delete', Symbol(), transaction.price);
+      SendTelegramMessage(message);
+   }
+}
+
+//+------------------------------------------------------------------+
+//|                           Initialization                         |
+//+------------------------------------------------------------------+
+
+// Initialize the Telegram connector
+CTelegramConnector telegram;
+
+//+------------------------------------------------------------------+
+//|                           Expert Advisor                          |
+//+------------------------------------------------------------------+
+
+// Entry point of the Expert Advisor
+void OnTick()
+{
+   // Your trading algorithm goes here
+}
+
+//+------------------------------------------------------------------+
